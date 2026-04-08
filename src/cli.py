@@ -125,7 +125,7 @@ def _audit_url(url: str, *, cookie: str | None, use_js: bool) -> AuditResult:
 
 
 def main() -> None:
-    """CLI entry point registered in ``accesscheckcli.toml`` as ``accesscheck``."""
+    """CLI entry point registered in ``pyproject.toml`` as ``accesscheck``."""
     parser = _build_parser()
     args = parser.parse_args()
     urls = _collect_urls(args)
