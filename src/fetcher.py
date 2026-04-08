@@ -26,7 +26,7 @@ class FetchError(RuntimeError):
 _TIMEOUT: float = 10.0
 _DEFAULT_HEADERS: dict[str, str] = {
     "User-Agent": (
-        "AccessCheck-CLI/0.1 (+https://github.com/dfigurado/accessibility-cli)"
+        "AccessCheck-CLI/0.1 (+https://github.com/dfigurado/AccessCheckCLI)"
     ),
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
     "Accept-Language": "en-US,en;q=0.5",

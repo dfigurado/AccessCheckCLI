@@ -39,9 +39,9 @@ dev = [
 accesscheck = "src.cli:main"
 
 [project.urls]
-Homepage   = "https://github.com/dfigurado/accessibility-cli"
-Repository = "https://github.com/dfigurado/accessibility-cli"
-Issues     = "https://github.com/dfigurado/accessibility-cli/issues"
+Homepage   = "https://github.com/dfigurado/AccessCheckCLI"
+Repository = "https://github.com/dfigurado/AccessCheckCLI"
+Issues     = "https://github.com/dfigurado/AccessCheckCLI/issues"
 
 [tool.setuptools.packages.find]
 where   = ["."]
