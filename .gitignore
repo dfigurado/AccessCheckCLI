@@ -164,5 +164,3 @@ cython_debug/
 
 # Visual studio
 .vscode
-
-# ignore reports
