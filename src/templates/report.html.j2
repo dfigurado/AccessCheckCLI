@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AccessCheck Report</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, -apple-system, sans-serif; background: #f4f6f9; color: #1a1a2e; line-height: 1.6; }
+    header { background: #1a1a2e; color: #fff; padding: 1.5rem 2rem; display: flex; align-items: center; gap: 1rem; }
+    header h1 { font-size: 1.4rem; font-weight: 700; letter-spacing: .02em; }
+    header .badge { background: #4f8ef7; border-radius: 4px; padding: .15rem .6rem; font-size: .75rem; font-weight: 600; }
+    .summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; padding: 1.5rem 2rem; }
+    .stat { background: #fff; border-radius: 8px; padding: 1.2rem 1.5rem; box-shadow: 0 1px 4px rgba(0,0,0,.08); text-align: center; }
+    .stat .num { font-size: 2.2rem; font-weight: 700; }
+    .stat .label { font-size: .8rem; color: #666; margin-top: .25rem; text-transform: uppercase; letter-spacing: .06em; }
+    .stat.fail .num { color: #d93025; }
+    .stat.pass .num { color: #1e8e3e; }
+    .stat.info .num { color: #4f8ef7; }
+    main { padding: 0 2rem 3rem; max-width: 1100px; margin: 0 auto; }
+    .url-card { background: #fff; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,.08); margin-bottom: 1.5rem; overflow: hidden; }
+    .url-card header { background: #1a1a2e; padding: .9rem 1.2rem; display: flex; align-items: center; justify-content: space-between; border-radius: 0; }
+    .url-card header .url-label { font-size: .95rem; font-weight: 600; word-break: break-all; }
+    .pill { border-radius: 20px; padding: .15rem .75rem; font-size: .75rem; font-weight: 700; }
+    .pill.pass { background: #1e8e3e; }
+    .pill.fail { background: #d93025; }
+    .pill.error { background: #f29900; color: #1a1a2e; }
+    .fetch-error { padding: 1rem 1.2rem; color: #d93025; font-size: .9rem; }
+    .no-violations { padding: 1rem 1.2rem; color: #1e8e3e; font-weight: 600; }
+    table { width: 100%; border-collapse: collapse; font-size: .875rem; }
+    thead tr { background: #f0f3fa; }
+    th { padding: .6rem 1rem; text-align: left; font-weight: 600; font-size: .8rem; text-transform: uppercase; letter-spacing: .05em; color: #555; border-bottom: 2px solid #dde2ef; }
+    td { padding: .7rem 1rem; border-bottom: 1px solid #eef0f5; vertical-align: top; }
+    tr:last-child td { border-bottom: none; }
+    .sev { border-radius: 4px; padding: .1rem .55rem; font-size: .72rem; font-weight: 700; white-space: nowrap; }
+    .sev-critical { background: #fce8e6; color: #c5221f; }
+    .sev-serious  { background: #fef7e0; color: #a56600; }
+    .sev-moderate { background: #e8f0fe; color: #1a73e8; }
+    .sev-minor    { background: #e6f4ea; color: #137333; }
+    .criterion-code { font-family: monospace; font-size: .85rem; font-weight: 700; color: #4f8ef7; }
+    .level-badge { border-radius: 3px; padding: .05rem .4rem; font-size: .7rem; font-weight: 700; background: #e8f0fe; color: #1a73e8; }
+    .element-snippet { font-family: monospace; font-size: .78rem; background: #f4f6f9; border-radius: 4px; padding: .3rem .5rem; max-width: 380px; overflow-x: auto; white-space: pre-wrap; word-break: break-all; color: #555; }
+    footer { text-align: center; color: #999; font-size: .8rem; padding: 1.5rem; border-top: 1px solid #dde2ef; margin-top: 2rem; }
+  </style>
+</head>
+<body>
+<header>
+  <h1>&#9679; AccessCheck Report</h1>
+  <span class="badge">WCAG 2.1 Level A &amp; AA</span>
+</header>
+
+<section class="summary">
+  <div class="stat info">
+    <div class="num">{{ results | length }}</div>
+    <div class="label">URL(s) audited</div>
+  </div>
+  <div class="stat {{ 'fail' if total_violations > 0 else 'pass' }}">
+    <div class="num">{{ total_violations }}</div>
+    <div class="label">Total violations</div>
+  </div>
+  <div class="stat pass">
+    <div class="num">{{ total_passed }}</div>
+    <div class="label">Rules passed</div>
+  </div>
+  <div class="stat {{ 'fail' if results | selectattr('fetch_error') | list | length > 0 else 'pass' }}">
+    <div class="num">{{ results | selectattr('fetch_error') | list | length }}</div>
+    <div class="label">Fetch errors</div>
+  </div>
+</section>
+
+<main>
+{% for result in results %}
+<div class="url-card">
+  <header>
+    <span class="url-label">
+        {{ result.url }}
+    </span>
+    {% if result.fetch_error %}
+      <span class="pill error">ERROR</span>
+    {% elif result.violations %}
+      <span class="pill fail">{{ result.violations | length }} violation(s)</span>
+    {% else %}
+      <span class="pill pass">PASS</span>
+    {% endif %}
+  </header>
+
+  {% if result.fetch_error %}
+    <div class="fetch-error">&#9888; {{ result.fetch_error }}</div>
+  {% elif not result.violations %}
+    <div class="no-violations">&#10003; No violations found — {{ result.passed_rules | length }} rule(s) checked.</div>
+  {% else %}
+  <table>
+    <thead>
+      <tr>
+        <th>Criterion</th>
+        <th>Severity</th>
+        <th>Description</th>
+        <th>Element</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for v in result.violations %}
+      <tr>
+        <td>
+          <span class="criterion-code">
+              {{ v.wcag_criterion }}
+          </span>
+            <br/>
+          <small>
+              {{ v.criterion_name }}
+          </small>
+            <br/>
+          <span class="level-badge">
+              Level {{ v.level }}
+          </span>
+        </td>
+        <td>
+            <span class="sev sev-{{ v.severity }}">
+                {{ v.severity }}
+            </span>
+        </td>
+        <td>
+            {{ v.description }}
+        </td>
+        <td>
+            <div class="element-snippet">{{ v.element | e }}</div>
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+</div>
+{% endfor %}
+</main>
+
+<footer>
+  Generated by <strong>AccessCheck CLI v{{ version }}</strong> &mdash;
+  <a href="https://www.w3.org/WAI/WCAG21/quickref/" target="_blank" rel="noopener">WCAG 2.1 Quick Reference</a>
+</footer>
+</body>
+</html>
