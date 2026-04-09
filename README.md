@@ -10,7 +10,7 @@
 
 ## Table of Contents
 
-- [Overview](#overview)
+- [Motivation](#motivation)
 - [Features](#features)
 - [WCAG Rules Covered](#wcag-rules-covered)
 - [Requirements](#requirements)
@@ -26,7 +26,7 @@
 
 ---
 
-## Overview
+## Motivation
 
 Visually impaired users rely on web content that meets WCAG 2.1 standards. Existing tools (axe, Lighthouse) require browser GUIs or heavy CI integration overhead. **AccessCheck CLI** provides a zero-config, terminal-native audit tool that any developer can run against any URL and get structured, human-readable results instantly.
 
